@@ -523,20 +523,18 @@ function khetraTable(c){
   const th=(k,l)=>`<th data-sort="${k}" data-active="${key===k}">${l}</th>`;
   return `<div class="tabcard"><div class="scroll"><table>
     <thead><tr>${th('name','Khetra')}${th('total','Total')}${th('m','Males')}${th('f','Females')}
-      ${th('fShare','Female %')}${th('arrived','In')}${th('departed','Out')}${th('liveUnits','Units')}${th('last','Last')}</tr></thead>
+      ${th('arrived','In')}${th('departed','Out')}${th('last','Last')}</tr></thead>
     <tbody>${rows.map(k=>`<tr>
       <td>${esc(k.name)}</td><td>${n(k.total)}</td>
       <td style="color:var(--m)">${n(k.m)}</td><td style="color:var(--f)">${n(k.f)}</td>
-      <td>${k.m+k.f?pc(k.fShare):'—'}</td>
       <td class="in">${n(k.arrived)}</td><td class="out">${n(k.departed)}</td>
-      <td>${k.liveUnits}</td><td>${shortd(k.last)}</td></tr>`).join('')}
+      <td>${shortd(k.last)}</td></tr>`).join('')}
       <tr><td>All khetras</td><td>${n(c.total)}</td>
         <td style="color:var(--m)">${n(c.males)}</td><td style="color:var(--f)">${n(c.females)}</td>
-        <td>${c.males+c.females?pc(c.females/(c.males+c.females)):'—'}</td>
         <td class="in">${n(c.arrived)}</td><td class="out">${n(c.departed)}</td>
-        <td>${c.liveUnits}</td><td>—</td></tr>
+        <td>—</td></tr>
     </tbody></table></div></div>
-    <p class="note">Tap a heading to sort. Swipe the table sideways for more columns.</p>`;
+    <p class="note">Tap a heading to sort.</p>`;
 }
 
 function gender(c){
