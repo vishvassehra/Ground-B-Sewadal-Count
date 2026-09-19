@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Ground B — khetra wise sewadal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16202a;
+    --paper:#eceff0;
+    --card:#ffffff;
+    --line:#d7dcdd;
+    --muted:#6b7a85;
+    --in:#2f6f4e;
+    --out:#a8452f;
+    --mark:#c08422;
+    --radius:10px;
+    --pad:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Inter Tight",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:15px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+  .wrap{max-width:860px;margin:0 auto;padding:14px 14px 60px}
+
+  /* ---------- head ---------- */
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .place{font-family:"Newsreader",Georgia,serif;font-weight:500;font-size:20px;letter-spacing:-.01em;margin:0}
+  .place small{display:block;font-family:"Inter Tight",sans-serif;font-weight:400;font-size:12.5px;color:var(--muted);letter-spacing:0}
+  .datebox{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+  .datebox label{font-size:11.5px;color:var(--muted)}
+  input[type=date]{
+    font:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--line);
+    border-radius:8px;background:var(--card);color:var(--ink);
+  }
+  .jump{display:flex;gap:6px}
+  .jump button{
+    font:inherit;font-size:11.5px;color:var(--muted);background:none;border:0;
+    padding:2px 4px;cursor:pointer;border-bottom:1px solid transparent;
+  }
+  .jump button:hover{color:var(--ink);border-bottom-color:var(--mark)}
+
+  /* ---------- hero ---------- */
+  .hero{
+    margin-top:14px;background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);padding:18px var(--pad);
+    display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:end;
+  }
+  .strength{font-family:"Newsreader",Georgia,serif;font-weight:300;font-size:64px;line-height:.9;letter-spacing:-.02em}
+  .strength span{font-size:14px;font-family:"Inter Tight",sans-serif;color:var(--muted);display:block;line-height:1.4;margin-top:8px;letter-spacing:0}
+  .flow{display:flex;gap:18px;justify-content:flex-end;flex-wrap:wrap}
+  .flow div{text-align:right}
+  .flow b{display:block;font-family:"Newsreader",serif;font-weight:500;font-size:26px;line-height:1}
+  .flow i{font-style:normal;font-size:11.5px;color:var(--muted)}
+  .in{color:var(--in)} .out{color:var(--out)}
+
+  /* ---------- tabs ---------- */
+  nav{display:flex;gap:2px;margin:16px 0 12px;border-bottom:1px solid var(--line)}
+  nav button{
+    font:inherit;font-size:14px;background:none;border:0;padding:8px 12px;cursor:pointer;
+    color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;
+  }
+  nav button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--mark);font-weight:500}
+
+  /* ---------- khetra cards ---------- */
+  .cards{display:grid;gap:8px}
+  .k{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .k>summary{
+    list-style:none;cursor:pointer;padding:13px var(--pad);
+    display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
+  }
+  .k>summary::-webkit-details-marker{display:none}
+  .k-name{font-weight:500;font-size:15.5px}
+  .k-sub{font-size:12px;color:var(--muted);font-weight:400}
+  .k-num{font-family:"Newsreader",serif;font-weight:500;font-size:28px;line-height:1}
+  .chev{color:var(--muted);font-size:12px;transition:transform .15s ease}
+  details[open] .chev{transform:rotate(90deg)}
+  .bar{height:3px;background:var(--mark);opacity:.55}
+  .k-body{border-top:1px solid var(--line);padding:4px 0 8px}
+  .u{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;
+     padding:8px var(--pad);font-size:14px}
+  .u+.u{border-top:1px dashed #e6eaeb}
+  .u-n{font-weight:500}
+  .u small{font-size:11.5px;color:var(--muted)}
+  .kpi{font-size:13px;color:var(--muted);padding:8px var(--pad) 2px;display:flex;gap:14px;flex-wrap:wrap}
+  .kpi b{color:var(--ink);font-weight:500}
+
+  /* ---------- tables ---------- */
+  table{width:100%;border-collapse:collapse;background:var(--card);
+        border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;font-size:13.5px}
+  th,td{padding:9px 10px;text-align:right;border-bottom:1px solid #eceff0;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left;white-space:normal}
+  thead th{font-weight:500;font-size:12px;color:var(--muted);background:#f7f9f9;cursor:pointer;user-select:none}
+  thead th[data-active=true]{color:var(--ink)}
+  tbody tr:last-child td{border-bottom:0}
+  .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  /* ---------- chart ---------- */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px var(--pad);margin-bottom:10px}
+  .panel h2{font-family:"Newsreader",serif;font-weight:500;font-size:17px;margin:0 0 2px}
+  .panel p{margin:0 0 12px;font-size:12.5px;color:var(--muted)}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+
+  .filterrow{display:flex;gap:8px;margin-bottom:10px}
+  .filterrow input,.filterrow select{
+    font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);
+    border-radius:8px;background:var(--card);color:var(--ink);flex:1;min-width:0;
+  }
+
+  .note{font-size:12.5px;color:var(--muted);margin:12px 2px 0}
+  .warn{background:#fdf3e6;border:1px solid #f0dcbb;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:10px}
+  .empty{background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);
+         padding:26px var(--pad);text-align:center;color:var(--muted);font-size:14px}
+  .foot{margin-top:22px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .foot button{font:inherit;font-size:12px;background:none;border:0;color:var(--muted);cursor:pointer;text-decoration:underline}
+  button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--mark);outline-offset:2px}
+
+  @media (max-width:520px){
+    .hero{grid-template-columns:1fr;gap:12px;align-items:start}
+    .flow{justify-content:flex-start}
+    .flow div{text-align:left}
+    .strength{font-size:56px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <h1 class="place">Ground B — khetra wise sewadal
+      <small id="srcline">Loading sheet…</small>
+    </h1>
+    <div class="datebox">
+      <label for="asOn">Strength as on</label>
+      <input type="date" id="asOn" />
+      <div class="jump">
+        <button data-jump="today">Today</button>
+        <button data-jump="latest">Latest entry</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div>
+      <div class="strength" id="totalStrength">—<span id="totalSub">sewadal present in Ground B</span></div>
+    </div>
+    <div class="flow">
+      <div><b class="in" id="dayIn">—</b><i>came in on this date</i></div>
+      <div><b class="out" id="dayOut">—</b><i>went out on this date</i></div>
+      <div><b id="khetraCount">—</b><i>khetras with sewadal</i></div>
+      <div><b id="unitCount">—</b><i>units represented</i></div>
+    </div>
+  </section>
+
+  <nav role="tablist">
+    <button role="tab" data-tab="board" aria-selected="true">Board</button>
+    <button role="tab" data-tab="khetras" aria-selected="false">Khetra table</button>
+    <button role="tab" data-tab="trend" aria-selected="false">Trend</button>
+    <button role="tab" data-tab="log" aria-selected="false">Movement log</button>
+  </nav>
+
+  <div id="view"></div>
+
+  <div class="foot">
+    <span id="stamp"></span>
+    <button id="refresh">Refresh from sheet</button>
+  </div>
+</div>
+
+<script>
+/* ------------------------------------------------------------------ */
+/* config — the published sheet                                        */
+/* ------------------------------------------------------------------ */
+const PUBLISH_ID = "2PACX-1vTsYgH-BuNyxUMcmAC4N-rDzhwv_rSDzesmk47TF6NYnXl7xqif1CoKYgeaUop0vBBSQkNo7TdvZqW2";
+const GID = "1213054300";
+const DIRECT_CSV = `https://docs.google.com/spreadsheets/d/e/${PUBLISH_ID}/pub?gid=${GID}&single=true&output=csv`;
+
+/* ------------------------------------------------------------------ */
+/* csv + parsing                                                       */
+/* ------------------------------------------------------------------ */
+function parseCSV(text){
+  const rows=[]; let row=[], cell='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; }
+      else cell+=c;
+    } else if(c==='"'){ q=true; }
+    else if(c===','){ row.push(cell); cell=''; }
+    else if(c==='\n'){ row.push(cell); rows.push(row); row=[]; cell=''; }
+    else if(c!=='\r'){ cell+=c; }
+  }
+  if(cell.length||row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r=>r.some(v=>String(v).trim()!==''));
+}
+
+function ymd(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+// handles 19/09/2026, 9/19/2026, 2026-09-19, and "9/19/2026 10:24:15"
+function parseDate(v){
+  if(!v) return null;
+  const s=String(v).trim(); if(!s) return null;
+  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return new Date(+m[1],+m[2]-1,+m[3]);
+  m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if(m){
+    let a=+m[1], b=+m[2], y=+m[3]; if(y<100) y+=2000;
+    let mo,da;
+    if(a>12){ da=a; mo=b; }        // 19/09/2026
+    else if(b>12){ mo=a; da=b; }   // 9/19/2026
+    else { mo=a; da=b; }           // ambiguous — google form sheets export as M/D
+    return new Date(y,mo-1,da);
+  }
+  const d=new Date(s);
+  return isNaN(d) ? null : new Date(d.getFullYear(),d.getMonth(),d.getDate());
+}
+
+function pick(headers, ...names){
+  const h=headers.map(x=>x.toLowerCase().trim());
+  for(const n of names){
+    const i=h.findIndex(x=>x===n); if(i>-1) return i;
+  }
+  for(const n of names){
+    const i=h.findIndex(x=>x.includes(n)); if(i>-1) return i;
+  }
+  return -1;
+}
+
+const state={ recs:[], bad:0, asOn:ymd(new Date()), tab:'board', sort:{key:'strength',dir:-1}, q:'', statusFilter:'all' };
+
+function buildRecords(rows){
+  const head=rows[0].map(x=>String(x));
+  const iK=pick(head,'khetra'), iU=pick(head,'unit'), iS=pick(head,'status'),
+        iC=pick(head,'count','strength','number'), iD=pick(head,'date'),
+        iT=pick(head,'timestamp');
+  const recs=[]; let bad=0;
+  for(let r=1;r<rows.length;r++){
+    const row=rows[r];
+    const khetra=(row[iK]||'').trim();
+    const status=(row[iS]||'').trim().toLowerCase();
+    if(!khetra && !status) continue;
+    const count=Number(String(row[iC]??'').replace(/[^0-9.\-]/g,''));
+    const dt=parseDate(iD>-1?row[iD]:null) || parseDate(iT>-1?row[iT]:null);
+    if(!dt || !isFinite(count) || !count || !status){ bad++; continue; }
+    recs.push({
+      khetra: khetra || '(no khetra)',
+      unit: (iU>-1?(row[iU]||'').trim():'') || '(no unit)',
+      status: status.startsWith('ex') ? 'exit' : 'entry',
+      count: Math.abs(count),
+      date: ymd(dt),
+      ts: (iT>-1?(row[iT]||'').trim():'')
+    });
+  }
+  recs.sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0);
+  state.recs=recs; state.bad=bad;
+}
+
+/* ------------------------------------------------------------------ */
+/* computation                                                         */
+/* ------------------------------------------------------------------ */
+function compute(asOn){
+  const upto=state.recs.filter(r=>r.date<=asOn);
+  const kh=new Map();
+  let dayIn=0, dayOut=0;
+
+  for(const r of upto){
+    const sign = r.status==='entry' ? 1 : -1;
+    if(!kh.has(r.khetra)) kh.set(r.khetra,{
+      name:r.khetra, strength:0, arrived:0, departed:0, units:new Map(),
+      last:'', firstSeen:r.date, dayIn:0, dayOut:0
+    });
+    const k=kh.get(r.khetra);
+    k.strength += sign*r.count;
+    if(sign>0) k.arrived += r.count; else k.departed += r.count;
+    if(r.date>k.last) k.last=r.date;
+
+    if(!k.units.has(r.unit)) k.units.set(r.unit,{name:r.unit,strength:0,arrived:0,departed:0,last:''});
+    const u=k.units.get(r.unit);
+    u.strength += sign*r.count;
+    if(sign>0) u.arrived += r.count; else u.departed += r.count;
+    if(r.date>u.last) u.last=r.date;
+
+    if(r.date===asOn){
+      if(sign>0){ dayIn+=r.count; k.dayIn+=r.count; } else { dayOut+=r.count; k.dayOut+=r.count; }
+    }
+  }
+
+  const khetras=[...kh.values()].map(k=>({
+    ...k,
+    unitList:[...k.units.values()].sort((a,b)=>b.strength-a.strength),
+    activeUnits:[...k.units.values()].filter(u=>u.strength>0).length
+  }));
+
+  // cumulative strength across all dates (for the trend chart + peak)
+  const dates=[...new Set(state.recs.map(r=>r.date))].sort();
+  let run=0; const series=[]; const perDay=[];
+  for(const d of dates){
+    let din=0,dout=0;
+    for(const r of state.recs) if(r.date===d){ r.status==='entry'?din+=r.count:dout+=r.count; }
+    run += din-dout;
+    series.push({date:d,total:run});
+    perDay.push({date:d,in:din,out:dout,net:din-dout,total:run});
+  }
+  const peak=series.reduce((a,b)=>b.total>=(a?a.total:-1)?b:a,null);
+
+  const total=khetras.reduce((s,k)=>s+k.strength,0);
+  return {
+    upto, khetras, total, dayIn, dayOut, series, perDay, peak,
+    activeKhetras:khetras.filter(k=>k.strength>0).length,
+    activeUnits:new Set(upto.map(r=>r.khetra+'|'+r.unit)).size,
+    arrived:upto.filter(r=>r.status==='entry').reduce((s,r)=>s+r.count,0),
+    departed:upto.filter(r=>r.status==='exit').reduce((s,r)=>s+r.count,0),
+    negatives:khetras.filter(k=>k.strength<0)
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* rendering                                                           */
+/* ------------------------------------------------------------------ */
+const n = v => new Intl.NumberFormat('en-IN').format(v);
+const nice = d => d ? new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—';
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function render(){
+  const c=compute(state.asOn);
+  document.getElementById('totalStrength').firstChild.nodeValue = n(c.total);
+  document.getElementById('totalSub').textContent =
+    `sewadal in Ground B on ${nice(state.asOn)}`;
+  document.getElementById('dayIn').textContent = c.dayIn?('+'+n(c.dayIn)):'0';
+  document.getElementById('dayOut').textContent = c.dayOut?('−'+n(c.dayOut)):'0';
+  document.getElementById('khetraCount').textContent = n(c.activeKhetras);
+  document.getElementById('unitCount').textContent = n(c.activeUnits);
+
+  const view=document.getElementById('view');
+  view.innerHTML =
+    (state.tab==='board'   ? board(c)   :
+     state.tab==='khetras' ? khetraTable(c) :
+     state.tab==='trend'   ? trend(c)   : log(c));
+  wireView();
+}
+
+function board(c){
+  const live=c.khetras.filter(k=>k.strength!==0 || k.dayIn || k.dayOut)
+                      .sort((a,b)=>b.strength-a.strength);
+  if(!live.length) return `<div class="empty">No sewadal counted in Ground B on or before ${nice(state.asOn)}.</div>`;
+  const max=Math.max(...live.map(k=>Math.abs(k.strength)),1);
+  let html = c.negatives.length
+    ? `<div class="warn">Negative strength in ${c.negatives.map(k=>esc(k.name)).join(', ')} — more exits than entries recorded. Check those rows in the sheet.</div>` : '';
+  html += '<div class="cards">';
+  for(const k of live){
+    const move = (k.dayIn?`<span class="in">+${n(k.dayIn)}</span>`:'') +
+                 (k.dayIn&&k.dayOut?' / ':'') +
+                 (k.dayOut?`<span class="out">−${n(k.dayOut)}</span>`:'');
+    html += `<details class="k">
+      <summary>
+        <span>
+          <span class="k-name">${esc(k.name)}</span>
+          <span class="k-sub">${k.activeUnits} unit${k.activeUnits===1?'':'s'} · last movement ${nice(k.last)}${move?' · '+move:''}</span>
+        </span>
+        <span class="k-num">${n(k.strength)}</span>
+        <span class="chev">›</span>
+      </summary>
+      <div class="bar" style="width:${Math.round(Math.abs(k.strength)/max*100)}%"></div>
+      <div class="k-body">
+        <div class="kpi">
+          <span>Came in <b>${n(k.arrived)}</b></span>
+          <span>Went out <b>${n(k.departed)}</b></span>
+          <span>First counted <b>${nice(k.firstSeen)}</b></span>
+        </div>
+        ${k.unitList.map(u=>`
+          <div class="u">
+            <span class="u-n">${esc(u.name)}<br><small>last movement ${nice(u.last)}</small></span>
+            <span class="in">+${n(u.arrived)}</span>
+            <span class="out">−${n(u.departed)}</span>
+            <span class="k-num" style="font-size:19px">${n(u.strength)}</span>
+          </div>`).join('')}
+      </div>
+    </details>`;
+  }
+  html += '</div>';
+  html += `<p class="note">Strength = entries minus exits recorded up to ${nice(state.asOn)}. Tap a khetra for its units.</p>`;
+  return html;
+}
+
+function khetraTable(c){
+  const rows=c.khetras.slice();
+  const key=state.sort.key, dir=state.sort.dir;
+  rows.sort((a,b)=>{
+    const va = key==='name'?a.name:key==='last'?a.last:a[key];
+    const vb = key==='name'?b.name:key==='last'?b.last:b[key];
+    if(typeof va==='string') return va.localeCompare(vb)*dir*-1;
+    return (va-vb)*dir;
+  });
+  if(!rows.length) return `<div class="empty">Nothing recorded on or before ${nice(state.asOn)}.</div>`;
+  const th=(k,label)=>`<th data-sort="${k}" data-active="${key===k}">${label}</th>`;
+  return `<div class="scroll"><table>
+    <thead><tr>
+      ${th('name','Khetra')}${th('strength','Strength')}${th('arrived','Came in')}
+      ${th('departed','Went out')}${th('activeUnits','Units')}${th('last','Last movement')}
+    </tr></thead>
+    <tbody>${rows.map(k=>`<tr>
+      <td>${esc(k.name)}</td>
+      <td><b>${n(k.strength)}</b></td>
+      <td class="in">${n(k.arrived)}</td>
+      <td class="out">${n(k.departed)}</td>
+      <td>${k.activeUnits}</td>
+      <td>${nice(k.last)}</td>
+    </tr>`).join('')}
+    <tr><td><b>All khetras</b></td><td><b>${n(c.total)}</b></td>
+        <td class="in">${n(c.arrived)}</td><td class="out">${n(c.departed)}</td>
+        <td>${c.activeUnits}</td><td>—</td></tr>
+    </tbody></table></div>
+    <p class="note">Tap a column heading to sort.</p>`;
+}
+
+function trend(c){
+  if(c.series.length<1) return `<div class="empty">No dated movement in the sheet yet.</div>`;
+  const s=c.series, W=680, H=180, P=26;
+  const maxV=Math.max(...s.map(p=>p.total),1);
+  const x=i=> s.length<2 ? W/2 : P + i*(W-2*P)/(s.length-1);
+  const y=v=> H - 18 - (v/maxV)*(H-40);
+  const line=s.map((p,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(p.total).toFixed(1)}`).join(' ');
+  const area=`${line} L${x(s.length-1).toFixed(1)},${H-18} L${x(0).toFixed(1)},${H-18} Z`;
+  const idx=s.findIndex(p=>p.date===state.asOn);
+  const marker= idx>-1 ? `<circle cx="${x(idx)}" cy="${y(s[idx].total)}" r="4" fill="var(--mark)" />` : '';
+  const labels=s.map((p,i)=> (s.length<=8 || i===0 || i===s.length-1 || i===Math.floor(s.length/2))
+    ? `<text x="${x(i)}" y="${H-4}" font-size="10" fill="var(--muted)" text-anchor="middle">${nice(p.date).replace(/ \d{4}$/,'')}</text>` : '').join('');
+
+  const recent=c.perDay.slice(-14).reverse();
+
+  return `<div class="panel">
+      <h2>Strength in Ground B over time</h2>
+      <p>Running total of every entry and exit in the sheet. Marked point is ${nice(state.asOn)}. Peak so far ${n(c.peak?c.peak.total:0)} on ${nice(c.peak?c.peak.date:'')}.</p>
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Strength over time">
+        <path d="${area}" fill="var(--mark)" opacity=".12" />
+        <path d="${line}" fill="none" stroke="var(--mark)" stroke-width="2" stroke-linejoin="round" />
+        ${marker}${labels}
+        <text x="${P}" y="12" font-size="10" fill="var(--muted)">${n(maxV)}</text>
+      </svg>
+    </div>
+    <div class="panel">
+      <h2>Day by day movement</h2>
+      <p>Most recent 14 dates with any entry or exit.</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Date</th><th>Came in</th><th>Went out</th><th>Net</th><th>Strength after</th></tr></thead>
+        <tbody>${recent.map(d=>`<tr>
+          <td>${nice(d.date)}</td>
+          <td class="in">${d.in?'+'+n(d.in):'—'}</td>
+          <td class="out">${d.out?'−'+n(d.out):'—'}</td>
+          <td>${d.net>0?'+':''}${n(d.net)}</td>
+          <td><b>${n(d.total)}</b></td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+    <div class="panel">
+      <h2>Share of Ground B by khetra</h2>
+      <p>Strength on ${nice(state.asOn)}.</p>
+      ${shareBars(c)}
+    </div>`;
+}
+
+function shareBars(c){
+  const live=c.khetras.filter(k=>k.strength>0).sort((a,b)=>b.strength-a.strength);
+  if(!live.length) return `<p class="note">No khetra has sewadal on this date.</p>`;
+  const max=live[0].strength;
+  return `<div>${live.map(k=>`
+    <div style="display:grid;grid-template-columns:120px 1fr 56px;gap:10px;align-items:center;margin:6px 0">
+      <span style="font-size:13.5px">${esc(k.name)}</span>
+      <span style="background:#eef1f1;border-radius:3px;height:12px;overflow:hidden">
+        <span style="display:block;height:100%;width:${(k.strength/max*100).toFixed(1)}%;background:var(--mark);opacity:.8"></span>
+      </span>
+      <span style="text-align:right;font-size:13.5px"><b>${n(k.strength)}</b> · ${(k.strength/c.total*100).toFixed(0)}%</span>
+    </div>`).join('')}</div>`;
+}
+
+function log(c){
+  const q=state.q.toLowerCase();
+  let rows=c.upto.slice().reverse();
+  if(state.statusFilter!=='all') rows=rows.filter(r=>r.status===state.statusFilter);
+  if(q) rows=rows.filter(r=>(r.khetra+' '+r.unit).toLowerCase().includes(q));
+  const shown=rows.slice(0,200);
+  return `<div class="filterrow">
+      <input id="q" placeholder="Search khetra or unit" value="${esc(state.q)}" />
+      <select id="statusFilter" style="flex:0 0 130px">
+        <option value="all"${state.statusFilter==='all'?' selected':''}>Entry and exit</option>
+        <option value="entry"${state.statusFilter==='entry'?' selected':''}>Entry only</option>
+        <option value="exit"${state.statusFilter==='exit'?' selected':''}>Exit only</option>
+      </select>
+    </div>
+    ${shown.length?`<div class="scroll"><table>
+      <thead><tr><th>Khetra</th><th>Unit</th><th>Status</th><th>Count</th><th>Date</th></tr></thead>
+      <tbody>${shown.map(r=>`<tr>
+        <td>${esc(r.khetra)}</td>
+        <td style="text-align:left">${esc(r.unit)}</td>
+        <td class="${r.status==='entry'?'in':'out'}">${r.status==='entry'?'Entry':'Exit'}</td>
+        <td>${n(r.count)}</td>
+        <td>${nice(r.date)}</td>
+      </tr>`).join('')}</tbody></table></div>
+      <p class="note">${n(rows.length)} record${rows.length===1?'':'s'} up to ${nice(state.asOn)}${rows.length>200?', showing latest 200':''}.</p>`
+    : `<div class="empty">No records match.</div>`}`;
+}
+
+/* ------------------------------------------------------------------ */
+/* wiring                                                              */
+/* ------------------------------------------------------------------ */
+function wireView(){
+  document.querySelectorAll('thead th[data-sort]').forEach(th=>{
+    th.onclick=()=>{
+      const k=th.dataset.sort;
+      state.sort = state.sort.key===k ? {key:k,dir:-state.sort.dir} : {key:k,dir:-1};
+      render();
+    };
+  });
+  const q=document.getElementById('q');
+  if(q) q.oninput=e=>{ state.q=e.target.value; const pos=e.target.selectionStart; render();
+                        const nq=document.getElementById('q'); nq.focus(); nq.setSelectionRange(pos,pos); };
+  const sf=document.getElementById('statusFilter');
+  if(sf) sf.onchange=e=>{ state.statusFilter=e.target.value; render(); };
+}
+
+document.querySelectorAll('nav button').forEach(b=>{
+  b.onclick=()=>{
+    state.tab=b.dataset.tab;
+    document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-selected', x===b));
+    render();
+  };
+});
+document.getElementById('asOn').onchange=e=>{ state.asOn=e.target.value||ymd(new Date()); render(); };
+document.querySelectorAll('.jump button').forEach(b=>{
+  b.onclick=()=>{
+    const latest=state.recs.length?state.recs[state.recs.length-1].date:ymd(new Date());
+    state.asOn = b.dataset.jump==='today' ? ymd(new Date()) : latest;
+    document.getElementById('asOn').value=state.asOn;
+    render();
+  };
+});
+document.getElementById('refresh').onclick=()=>load(true);
+
+async function load(force){
+  const src=document.getElementById('srcline');
+  src.textContent='Reading the sheet…';
+  let text=null;
+  try{
+    const r=await fetch('/api/sheet'+(force?'?t='+Date.now():''));
+    if(r.ok) text=await r.text();
+  }catch(e){}
+  if(!text){
+    try{
+      const r=await fetch(DIRECT_CSV+(force?'&t='+Date.now():''));
+      if(r.ok) text=await r.text();
+    }catch(e){}
+  }
+  if(!text){
+    src.textContent='Sheet unreachable — check that it is still published to the web.';
+    document.getElementById('view').innerHTML=
+      '<div class="empty">Could not read the sheet. Publish it to the web again, or check the deployment’s sheet settings, then use “Refresh from sheet”.</div>';
+    return;
+  }
+  buildRecords(parseCSV(text));
+  const latest=state.recs.length?state.recs[state.recs.length-1].date:ymd(new Date());
+  src.textContent=`${n(state.recs.length)} entry/exit records · latest dated ${nice(latest)}`
+    + (state.bad?` · ${state.bad} row${state.bad===1?'':'s'} skipped`:'');
+  document.getElementById('asOn').value=state.asOn;
+  document.getElementById('stamp').textContent='Read at '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  render();
+}
+load();
+</script>
+</body>
+</html>
