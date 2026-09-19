@@ -36,6 +36,7 @@ under the title.
 - **Khetra table** — sortable on total, males, females, female %, in, out, units, last movement, with a ground total row.
 - **Male / female** — male-female split per khetra as bars, highest and lowest female share, male-to-female ratio for the ground, top 8 units by strength.
 - **Trend** — males as the lower band and total as the full height across the Samagam, peak and its date, last 14 dates of in/out split by male and female.
+- **Print / A4 PDF** — the button in the footer prints whichever tab is open, laid out for A4 portrait: Samagam heading, the tab name, the as-on date, ground totals and a printed-at stamp. Khetra cards are expanded automatically so units appear on paper, and rows and cards are kept from splitting across pages. Use the browser's "Save as PDF" destination for a file.
 - **Log** — every row up to the chosen date with its M/F counts, searchable by khetra or unit, filterable to entry or exit.
 
 Negative strength in a khetra (more exits than entries recorded) is flagged on the

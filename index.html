@@ -147,6 +147,39 @@
     .cards{grid-template-columns:1fr 1fr}
     .hero{padding:20px}
   }
+
+  /* ---------- print / A4 ---------- */
+  #printhead{display:none}
+  @page{size:A4 portrait;margin:13mm 11mm 14mm}
+  @media print{
+    :root{--card:#fff;--paper:#fff}
+    html,body{background:#fff}
+    body{font-size:10pt;color:#000}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .wrap{max-width:none;padding:0}
+    header,nav,.foot,.filterrow,.jump,.chev,.note{display:none!important}
+    #printhead{display:block;margin-bottom:9mm;border-bottom:1.2pt solid #171f26;padding-bottom:4mm}
+    #printhead .ph-sam{font-size:8.5pt;letter-spacing:.03em;color:#8a6a2a;margin:0 0 1mm}
+    #printhead h1{font-family:"Newsreader",Georgia,serif;font-weight:400;font-size:19pt;margin:0 0 1.5mm;line-height:1.1}
+    #printhead .ph-line{display:flex;justify-content:space-between;gap:8mm;font-size:9pt;color:#3d474e}
+    #printhead .ph-tot{font-family:"Newsreader",serif;font-size:12pt;color:#000}
+    .hero{border:0;border-radius:0;padding:0 0 5mm;margin:0 0 5mm;border-bottom:.6pt solid #cfd4d6}
+    .total b{font-size:30pt}
+    .panel,.tabcard,.k{border:.6pt solid #c9ced1;border-radius:0;box-shadow:none;break-inside:avoid;page-break-inside:avoid}
+    .panel{padding:4mm;margin-bottom:4mm}
+    .k{margin-bottom:2.5mm}
+    .cards{display:block}
+    .k-body{display:block!important;background:#fff}
+    .scroll{overflow:visible!important;margin:0;padding:0}
+    table{font-size:9pt;width:100%}
+    th,td{padding:1.6mm 2mm;border-bottom:.4pt solid #d7dcdd}
+    th:first-child,td:first-child{position:static;background:transparent}
+    thead{display:table-header-group}
+    tr{break-inside:avoid;page-break-inside:avoid}
+    tbody tr:last-child td{border-top:.8pt solid #171f26}
+    svg{max-height:70mm}
+    a[href]:after{content:""}
+  }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -170,6 +203,16 @@
     </div>
   </header>
 
+  <div id="printhead">
+    <p class="ph-sam">79th Sant Nirankari Samagam</p>
+    <h1>Ground B — khetra wise sewadal</h1>
+    <div class="ph-line">
+      <span id="phLeft"></span>
+      <span class="ph-tot" id="phTotal"></span>
+    </div>
+    <div class="ph-line" style="margin-top:1.5mm"><span id="phMeta"></span></div>
+  </div>
+
   <section class="hero">
     <div class="total"><b id="tTotal">—</b><span id="tSub">sewadal in Ground B</span></div>
     <div class="split"><i class="sm" id="sm" style="width:50%"></i><i class="sf" id="sf" style="width:50%"></i></div>
@@ -192,7 +235,7 @@
 
   <div class="foot">
     <span id="stamp"></span>
-    <button id="refresh">Refresh</button>
+    <span style="display:flex;gap:7px"><button id="print">Print / A4 PDF</button><button id="refresh">Refresh</button></span>
   </div>
 </div>
 
@@ -404,6 +447,13 @@ function render(){
     `<span class="in">In today <b>${inT?'+'+n(inT):'0'}</b>${inT?` (${n(c.day.inM)} m · ${n(c.day.inF)} f)`:''}</span>
      <span class="out">Out today <b>${outT?'−'+n(outT):'0'}</b>${outT?` (${n(c.day.outM)} m · ${n(c.day.outF)} f)`:''}</span>
      <span><b>${n(c.liveKhetras)}</b> khetras · <b>${n(c.liveUnits)}</b> units</span>`;
+
+  const tabName={board:'Khetra board',table:'Khetra table',gender:'Male and female split',trend:'Trend',log:'Movement log'}[state.tab];
+  document.getElementById('phLeft').textContent=`${tabName} · strength as on ${nice(state.asOn)}`;
+  document.getElementById('phTotal').textContent=
+    `${n(c.total)} sewadal · ${n(c.males)} m · ${n(c.females)} f`;
+  document.getElementById('phMeta').textContent=
+    `${n(c.liveKhetras)} khetras · ${n(c.liveUnits)} units · printed ${new Date().toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}`;
 
   const view=document.getElementById('view');
   if(!state.recs.length){ view.innerHTML=diagnose(); return; }
@@ -655,6 +705,14 @@ document.querySelectorAll('.jump button').forEach(b=>{
     document.getElementById('asOn').value=state.asOn; render(); };
 });
 document.getElementById('refresh').onclick=()=>load();
+document.getElementById('print').onclick=()=>{
+  const wasShut=[...document.querySelectorAll('details.k')].filter(d=>!d.open);
+  wasShut.forEach(d=>d.open=true);                       // units must be visible on paper
+  const restore=()=>{ wasShut.forEach(d=>d.open=false); window.removeEventListener('afterprint',restore); };
+  window.addEventListener('afterprint',restore);
+  window.print();
+  setTimeout(restore,1500);                              // safari fires afterprint late or not at all
+};
 
 async function load(){
   const src=document.getElementById('srcline');
