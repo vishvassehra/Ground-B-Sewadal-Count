@@ -238,13 +238,18 @@ function pick(headers, ...names){
   return -1;
 }
 
-const state={ recs:[], bad:0, asOn:ymd(new Date()), tab:'board', sort:{key:'strength',dir:-1}, q:'', statusFilter:'all' };
+const state={ recs:[], bad:0, asOn:ymd(new Date()), tab:'board', sort:{key:'strength',dir:-1},
+              q:'', statusFilter:'all', headers:[], missing:[], dataRows:0, source:'', raw:'' };
 
 function buildRecords(rows){
   const head=rows[0].map(x=>String(x));
   const iK=pick(head,'khetra'), iU=pick(head,'unit'), iS=pick(head,'status'),
         iC=pick(head,'count','strength','number'), iD=pick(head,'date'),
         iT=pick(head,'timestamp');
+  state.headers=head;
+  state.missing=[['Khetra',iK],['Status',iS],['Count',iC],['Date',iD]]
+    .filter(([,i])=>i<0).map(([n])=>n);
+  state.dataRows=Math.max(rows.length-1,0);
   const recs=[]; let bad=0;
   for(let r=1;r<rows.length;r++){
     const row=rows[r];
@@ -344,11 +349,34 @@ function render(){
   document.getElementById('unitCount').textContent = n(c.activeUnits);
 
   const view=document.getElementById('view');
+  if(!state.recs.length){ view.innerHTML=diagnose(); wireView(); return; }
   view.innerHTML =
     (state.tab==='board'   ? board(c)   :
      state.tab==='khetras' ? khetraTable(c) :
      state.tab==='trend'   ? trend(c)   : log(c));
   wireView();
+}
+
+function diagnose(){
+  const head = state.headers.length ? state.headers.filter(h=>h.trim()).map(esc).join(' · ') : '(none)';
+  let why;
+  if(!state.raw)                 why='Nothing came back from the sheet.';
+  else if(state.missing.length)  why=`The sheet was read, but these columns were not found: <b>${state.missing.join(', ')}</b>.`;
+  else if(!state.dataRows)       why='The sheet was read and the columns are right, but there are no rows under the header yet.';
+  else if(state.bad)             why=`${n(state.dataRows)} row${state.dataRows===1?'':'s'} were read but every one was skipped — a row needs a status, a count and a date.`;
+  else                           why='Rows were read but none had a usable status, count and date.';
+
+  return `<div class="panel">
+    <h2>No entry/exit records read</h2>
+    <p>${why}</p>
+    <div class="scroll"><table><tbody>
+      <tr><td>Source that answered</td><td style="text-align:left">${esc(state.source||'none')}</td></tr>
+      <tr><td>Header row found</td><td style="text-align:left">${head}</td></tr>
+      <tr><td>Rows under the header</td><td style="text-align:left">${n(state.dataRows)}</td></tr>
+      <tr><td>First 160 characters received</td><td style="text-align:left"><code style="font-size:12px;word-break:break-all">${esc(state.raw.slice(0,160))||'—'}</code></td></tr>
+    </tbody></table></div>
+    <p class="note">If the sheet has rows but they are not here: File → Share → Publish to web, publish <b>Form Responses 1</b> (or the entire document), then use “Refresh from sheet”. Google’s published copy can lag a few minutes behind an edit.</p>
+  </div>`;
 }
 
 function board(c){
@@ -551,15 +579,15 @@ document.getElementById('refresh').onclick=()=>load(true);
 async function load(force){
   const src=document.getElementById('srcline');
   src.textContent='Reading the sheet…';
-  let text=null;
+  let text=null; state.source=''; state.raw='';
   try{
-    const r=await fetch('/api/sheet'+(force?'?t='+Date.now():''));
-    if(r.ok) text=await r.text();
+    const r=await fetch('/api/sheet?t='+Date.now(),{cache:'no-store'});
+    if(r.ok){ text=await r.text(); state.source=r.headers.get('X-Sheet-Source')||'api/sheet'; }
   }catch(e){}
   if(!text){
     try{
-      const r=await fetch(DIRECT_CSV+(force?'&t='+Date.now():''));
-      if(r.ok) text=await r.text();
+      const r=await fetch(DIRECT_CSV+'&t='+Date.now(),{cache:'no-store'});
+      if(r.ok){ text=await r.text(); state.source='published-csv (direct)'; }
     }catch(e){}
   }
   if(!text){
@@ -568,12 +596,14 @@ async function load(force){
       '<div class="empty">Could not read the sheet. Publish it to the web again, or check the deployment’s sheet settings, then use “Refresh from sheet”.</div>';
     return;
   }
+  state.raw=text;
   buildRecords(parseCSV(text));
-  const latest=state.recs.length?state.recs[state.recs.length-1].date:ymd(new Date());
-  src.textContent=`${n(state.recs.length)} entry/exit records · latest dated ${nice(latest)}`
-    + (state.bad?` · ${state.bad} row${state.bad===1?'':'s'} skipped`:'');
+  src.textContent = state.recs.length
+    ? `${n(state.recs.length)} entry/exit records · latest dated ${nice(state.recs[state.recs.length-1].date)}`
+      + (state.bad?` · ${state.bad} row${state.bad===1?'':'s'} skipped`:'')
+    : 'No entry/exit records read from the sheet';
   document.getElementById('asOn').value=state.asOn;
-  document.getElementById('stamp').textContent='Read at '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('stamp').textContent='Read at '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+(state.source?' · '+state.source:'');
   render();
 }
 load();
