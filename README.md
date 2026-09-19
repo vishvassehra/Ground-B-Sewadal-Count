@@ -1,5 +1,7 @@
 # Ground B — khetra wise sewadal board
 
+79th Sant Nirankari Samagam.
+
 Reads the published Google Sheet **Khetra Wise Entry Exit Data** (tab: Form Responses 1)
 and shows how many sewadal are in Ground B on any chosen date, khetra by khetra.
 
@@ -7,25 +9,34 @@ The sheet is the only store. Nothing is written back, no database.
 
 ## How the count works
 
-Sheet columns: `Timestamp, Khetra, Unit, Status, Count, Date`
+Sheet columns: `Timestamp, Khetra, Unit, Status, Date, Males, Females`
 
 For a chosen date **D**, every row with `Date <= D` is taken:
 
 ```
-strength(khetra) = Σ Count where Status = Entry  −  Σ Count where Status = Exit
+males(khetra)   = Σ Males   where Status = Entry  −  Σ Males   where Status = Exit
+females(khetra) = Σ Females where Status = Entry  −  Σ Females where Status = Exit
+strength        = males + females
 ```
 
+An older `Count` column, if present, is still read and added to the total as an
+unsplit figure.
+
 The same netting runs per unit inside each khetra, and across the whole ground.
-`Date` is the working date of the movement; `Timestamp` is only a fallback when
-`Date` is blank. Rows with no usable date, status or count are skipped and counted
-in the line under the title.
+`Date` is the working date of the movement. If the form drops that header (it can
+arrive as `Column 5`), the page finds the date column by looking at the values
+themselves and says which column it used under the title; `Timestamp` is the last
+resort. `Unit` may be left blank — those rows group under "Unit not given".
+Rows with no usable date, status or head count are skipped and counted in the line
+under the title.
 
 ## Screens
 
-- **Board** — khetra cards with current strength, tap for units, came-in / went-out totals, last movement date.
-- **Khetra table** — sortable strength / came in / went out / units / last movement, with a ground total.
-- **Trend** — running strength across all dates, peak and its date, last 14 dates of in/out/net, share of the ground by khetra.
-- **Movement log** — every entry/exit row up to the chosen date, searchable by khetra or unit, filterable to entry or exit.
+- **Board** — khetra cards: total, male/female split bar, female share, today's movement; tap for units and in/out totals.
+- **Khetra table** — sortable on total, males, females, female %, in, out, units, last movement, with a ground total row.
+- **Male / female** — male-female split per khetra as bars, highest and lowest female share, male-to-female ratio for the ground, top 8 units by strength.
+- **Trend** — males as the lower band and total as the full height across the Samagam, peak and its date, last 14 dates of in/out split by male and female.
+- **Log** — every row up to the chosen date with its M/F counts, searchable by khetra or unit, filterable to entry or exit.
 
 Negative strength in a khetra (more exits than entries recorded) is flagged on the
 Board so the sheet can be corrected.
@@ -59,7 +70,8 @@ falls back to the published CSV directly.
 
 The sheet is fed by a Google Form. Whatever the form writes must keep the same
 column names — the page matches headers by name, not position, so column order can
-change but the words `Khetra`, `Unit`, `Status`, `Count`, `Date` must stay.
+change but the words `Khetra`, `Status`, `Date`, `Males` and `Females` must stay.
+`Unit` is optional.
 
 `Status` only needs to start with "Ex" to count as an exit; anything else counts as
 an entry.
