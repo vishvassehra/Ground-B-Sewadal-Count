@@ -77,6 +77,23 @@
   .movement b{font-weight:500}
   .in{color:var(--in)} .out{color:var(--out)}
 
+  .four{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}
+  .four div{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#fcfbf9}
+  .four div.adh{border-top:3px solid var(--mark)}
+  .four span{display:block;font-size:11.5px;color:var(--muted)}
+  .four b{font-family:"Newsreader",serif;font-weight:500;font-size:25px;line-height:1.1}
+  .four .m b{color:var(--m)} .four .f b{color:var(--f)}
+  .qty{display:flex;gap:9px;flex-wrap:wrap}
+  .qty span{white-space:nowrap}
+  .qty em{font-style:normal;font-size:10.5px;color:var(--muted);margin-right:2px}
+  .qty b{color:var(--ink);font-weight:500}
+  .msg{white-space:pre-wrap;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13.5px;line-height:1.55;
+       background:#fcfbf9;border:1px solid var(--hair);border-radius:9px;padding:12px 13px;margin:0 0 11px;user-select:all}
+  .btnrow{display:flex;gap:7px;flex-wrap:wrap}
+  .btn{font:inherit;font-size:14px;min-height:var(--tap);padding:0 16px;border-radius:9px;border:1px solid var(--line);
+       background:var(--card);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;text-decoration:none}
+  .btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+
   /* ---------- tabs ---------- */
   nav{display:flex;gap:4px;margin:14px 0 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   nav::-webkit-scrollbar{display:none}
@@ -145,6 +162,7 @@
     .place{font-size:27px}
     .total b{font-size:68px}
     .cards{grid-template-columns:1fr 1fr}
+    .four{grid-template-columns:repeat(4,1fr)}
     .hero{padding:20px}
   }
 
@@ -217,8 +235,14 @@
     <div class="total"><b id="tTotal">—</b><span id="tSub">sewadal in Ground B</span></div>
     <div class="split"><i class="sm" id="sm" style="width:50%"></i><i class="sf" id="sf" style="width:50%"></i></div>
     <div class="legend">
-      <div><span class="dot dm"></span><b id="tM">—</b> males <span id="pM"></span></div>
-      <div><span class="dot df"></span><b id="tF">—</b> females <span id="pF"></span></div>
+      <div><span class="dot dm"></span><b id="tM">—</b> all male <span id="pM"></span></div>
+      <div><span class="dot df"></span><b id="tF">—</b> all female <span id="pF"></span></div>
+    </div>
+    <div class="four">
+      <div class="adh m"><span>Adhikari male</span><b id="tAM">—</b></div>
+      <div class="m"><span>Males</span><b id="tRM">—</b></div>
+      <div class="adh f"><span>Adhikari female</span><b id="tAF">—</b></div>
+      <div class="f"><span>Females</span><b id="tRF">—</b></div>
     </div>
     <div class="movement" id="movement"></div>
   </section>
@@ -229,6 +253,7 @@
     <button role="tab" data-tab="gender" aria-selected="false">Male / female</button>
     <button role="tab" data-tab="trend" aria-selected="false">Trend</button>
     <button role="tab" data-tab="log" aria-selected="false">Log</button>
+    <button role="tab" data-tab="msg" aria-selected="false">Message</button>
   </nav>
 
   <div id="view"></div>
@@ -316,21 +341,30 @@ const state={ recs:[], bad:0, asOn:ymd(new Date()), tab:'board', sort:{key:'tota
 
 function buildRecords(rows){
   const head=(rows[0]||[]).map(String);
+  const lc=head.map(h=>h.toLowerCase().trim());
+  const col=(test,skip=[])=>lc.findIndex((h,i)=>!skip.includes(i)&&test(h));
+  // adhikari first, so "Adhikari Male" is never taken for "Males"
+  const iAF=col(h=>h.includes('adhikari')&&/female|ladies|women/.test(h));
+  const iAM=col(h=>h.includes('adhikari')&&/male|gents|\bmen/.test(h)&&!/female|women/.test(h));
+  const adh=[iAM,iAF].filter(i=>i>-1);
+  let iM=col(h=>/^(males?|gents|men)$/.test(h),adh);
+  if(iM<0) iM=col(h=>/\bmales?\b|gents|\bmen\b/.test(h)&&!/female|women/.test(h),adh);
+  let iF=col(h=>/^(females?|ladies|women)$/.test(h),adh);
+  if(iF<0) iF=col(h=>/female|ladies|women/.test(h),adh);
   const iK=pick(head,'khetra'), iU=pick(head,'unit'), iS=pick(head,'status'),
-        iM=pick(head,'males','male','gents','men'), iF=pick(head,'females','female','ladies','women'),
         iC=pick(head,'count','total'), iT=pick(head,'timestamp');
   let iD=pick(head,'date');
   if(iD>-1 && iD===iT) iD=-1;                       // "Timestamp" contains "date"? never use it as the date
   state.dateFrom='';
   if(iD<0){                                          // header renamed (e.g. "Column 5") — find it by content
-    iD=findDateColumn(rows,[iT,iK,iU,iS,iM,iF,iC].filter(i=>i>-1));
+    iD=findDateColumn(rows,[iT,iK,iU,iS,iM,iF,iAM,iAF,iC].filter(i=>i>-1));
     if(iD>-1) state.dateFrom=(head[iD]||'column '+(iD+1)).trim()+' (matched by content)';
   } else state.dateFrom=(head[iD]||'').trim();
   if(iD<0 && iT>-1) state.dateFrom='Timestamp (no date column found)';
   state.headers=head;
   state.missing=[['Khetra',iK],['Status',iS],['Date',iD]].filter(([,i])=>i<0).map(([x])=>x);
   state.dateCol=iD;
-  if(iM<0 && iF<0 && iC<0) state.missing.push('Males/Females');
+  if(iM<0 && iF<0 && iAM<0 && iAF<0 && iC<0) state.missing.push('Males/Females');
   state.dataRows=Math.max(rows.length-1,0);
 
   const recs=[]; let bad=0;
@@ -339,9 +373,11 @@ function buildRecords(rows){
     const khetra=(row[iK]||'').trim();
     const status=(row[iS]||'').trim().toLowerCase();
     if(!khetra && !status) continue;
-    const males   = iM>-1 ? num(row[iM]) : 0;
-    const females = iF>-1 ? num(row[iF]) : 0;
-    const plain   = (iM<0 && iF<0 && iC>-1) ? num(row[iC]) : 0;   // older sheets with one Count column
+    const am      = iAM>-1 ? num(row[iAM]) : 0;
+    const af      = iAF>-1 ? num(row[iAF]) : 0;
+    const males   = am + (iM>-1 ? num(row[iM]) : 0);     // m / f are ALL males / females, adhikari included
+    const females = af + (iF>-1 ? num(row[iF]) : 0);
+    const plain   = (iM<0 && iF<0 && iAM<0 && iAF<0 && iC>-1) ? num(row[iC]) : 0;   // older sheets with one Count column
     const total   = males+females+plain;
     const dt = (iD>-1 ? strictDate(row[iD]) : null) || (iT>-1 ? parseDate(row[iT]) : null);
     if(!dt || !status || !total){ bad++; continue; }
@@ -349,8 +385,8 @@ function buildRecords(rows){
       khetra: khetra || 'Not given',
       unit: (iU>-1?(row[iU]||'').trim():'') || 'Unit not given',
       status: status.startsWith('ex') ? 'exit' : 'entry',
-      m: males, f: females, u: plain, total,
-      date: ymd(dt)
+      m: males, f: females, am, af, u: plain, total,
+      date: ymd(dt), row: r
     });
   }
   recs.sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0);
@@ -368,17 +404,18 @@ function compute(asOn){
   for(const r of upto){
     const s = r.status==='entry' ? 1 : -1;
     if(!kh.has(r.khetra)) kh.set(r.khetra,{
-      name:r.khetra,m:0,f:0,u:0,total:0,inM:0,inF:0,outM:0,outF:0,
-      arrived:0,departed:0,units:new Map(),first:r.date,last:'',dayIn:0,dayOut:0
+      name:r.khetra,m:0,f:0,am:0,af:0,u:0,total:0,inM:0,inF:0,outM:0,outF:0,
+      arrived:0,departed:0,units:new Map(),first:r.date,last:'',dayIn:0,dayOut:0,row:r.row
     });
     const k=kh.get(r.khetra);
-    k.m+=s*r.m; k.f+=s*r.f; k.u+=s*r.u; k.total+=s*r.total;
+    k.m+=s*r.m; k.f+=s*r.f; k.am+=s*r.am; k.af+=s*r.af; k.u+=s*r.u; k.total+=s*r.total;
+    if(r.row<k.row) k.row=r.row;
     if(s>0){ k.arrived+=r.total; k.inM+=r.m; k.inF+=r.f; } else { k.departed+=r.total; k.outM+=r.m; k.outF+=r.f; }
     if(r.date>k.last) k.last=r.date;
 
-    if(!k.units.has(r.unit)) k.units.set(r.unit,{name:r.unit,m:0,f:0,u:0,total:0,last:''});
+    if(!k.units.has(r.unit)) k.units.set(r.unit,{name:r.unit,m:0,f:0,am:0,af:0,u:0,total:0,last:''});
     const u=k.units.get(r.unit);
-    u.m+=s*r.m; u.f+=s*r.f; u.u+=s*r.u; u.total+=s*r.total;
+    u.m+=s*r.m; u.f+=s*r.f; u.am+=s*r.am; u.af+=s*r.af; u.u+=s*r.u; u.total+=s*r.total;
     if(r.date>u.last) u.last=r.date;
 
     if(r.date===asOn){
@@ -410,9 +447,10 @@ function compute(asOn){
   const peak=series.reduce((a,b)=> b.total>=(a?a.total:-1)?b:a, null);
 
   const M=khetras.reduce((s,k)=>s+k.m,0), F=khetras.reduce((s,k)=>s+k.f,0), U=khetras.reduce((s,k)=>s+k.u,0);
+  const AM=khetras.reduce((s,k)=>s+k.am,0), AF=khetras.reduce((s,k)=>s+k.af,0);
   return {
     upto,khetras,series,perDay,peak,day,
-    males:M,females:F,unsplit:U,total:M+F+U,
+    males:M,females:F,m:M,f:F,am:AM,af:AF,unsplit:U,total:M+F+U,
     liveKhetras:khetras.filter(k=>k.total>0).length,
     liveUnits:khetras.reduce((s,k)=>s+k.liveUnits,0),
     arrived:upto.filter(r=>r.status==='entry').reduce((s,r)=>s+r.total,0),
@@ -430,6 +468,16 @@ const nice = d => d ? new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'n
 const shortd = d => d ? new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '—';
 const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
+// [adhikari male, males, adhikari female, females] — m / f hold all males / females
+const four = x => [x.am||0, (x.m||0)-(x.am||0), x.af||0, (x.f||0)-(x.af||0)];
+const fourTds = x => { const [a,b,c2,d]=four(x);
+  return `<td style="color:var(--m)">${n(a)}</td><td style="color:var(--m)">${n(b)}</td>`+
+         `<td style="color:var(--f)">${n(c2)}</td><td style="color:var(--f)">${n(d)}</td>`; };
+const FOUR_TH = '<th>Adhikari M</th><th>Males</th><th>Adhikari F</th><th>Females</th>';
+const fourQty = x => { const [a,b,c2,d]=four(x);
+  return `<span class="qty"><span><em>AM</em><b>${n(a)}</b></span><span><em>M</em><b>${n(b)}</b></span>`+
+         `<span><em>AF</em><b>${n(c2)}</b></span><span><em>F</em><b>${n(d)}</b></span></span>`; };
+
 function render(){
   const c=compute(state.asOn);
   const mf=c.males+c.females;
@@ -441,6 +489,11 @@ function render(){
   document.getElementById('pF').textContent= mf? '· '+pc(c.females/mf) : '';
   document.getElementById('sm').style.width = mf? (c.males/mf*100)+'%' : '50%';
   document.getElementById('sf').style.width = mf? (c.females/mf*100)+'%' : '50%';
+  const [hAM,hRM,hAF,hRF]=four(c);
+  document.getElementById('tAM').textContent=n(hAM);
+  document.getElementById('tRM').textContent=n(hRM);
+  document.getElementById('tAF').textContent=n(hAF);
+  document.getElementById('tRF').textContent=n(hRF);
 
   const inT=c.day.inM+c.day.inF+c.day.inU, outT=c.day.outM+c.day.outF+c.day.outU;
   document.getElementById('movement').innerHTML =
@@ -448,10 +501,10 @@ function render(){
      <span class="out">Out today <b>${outT?'−'+n(outT):'0'}</b>${outT?` (${n(c.day.outM)} m · ${n(c.day.outF)} f)`:''}</span>
      <span><b>${n(c.liveKhetras)}</b> khetras · <b>${n(c.liveUnits)}</b> units</span>`;
 
-  const tabName={board:'Khetra board',table:'Khetra table',gender:'Male and female split',trend:'Trend',log:'Movement log'}[state.tab];
+  const tabName={board:'Khetra board',table:'Khetra table',gender:'Male and female split',trend:'Trend',log:'Movement log',msg:'Attendance message'}[state.tab];
   document.getElementById('phLeft').textContent=`${tabName} · strength as on ${nice(state.asOn)}`;
   document.getElementById('phTotal').textContent=
-    `${n(c.total)} sewadal · ${n(c.males)} m · ${n(c.females)} f`;
+    `${n(c.total)} sewadal · AM ${n(hAM)} · M ${n(hRM)} · AF ${n(hAF)} · F ${n(hRF)}`;
   document.getElementById('phMeta').textContent=
     `${n(c.liveKhetras)} khetras · ${n(c.liveUnits)} units · printed ${new Date().toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}`;
 
@@ -461,7 +514,8 @@ function render(){
     state.tab==='board'  ? board(c)  :
     state.tab==='table'  ? khetraTable(c) :
     state.tab==='gender' ? gender(c) :
-    state.tab==='trend'  ? trend(c)  : log(c);
+    state.tab==='trend'  ? trend(c)  :
+    state.tab==='msg'    ? message(c): log(c);
   wireView();
 }
 
@@ -487,17 +541,13 @@ function board(c){
           <span class="k-total">${n(k.total)}</span></div>
         ${splitBar(k.m,k.f,'k-split')}
         <div class="k-meta">
-          <span class="mf">
-            <span><i class="dot dm"></i> <b>${n(k.m)}</b> m</span>
-            <span><i class="dot df"></i> <b>${n(k.f)}</b> f</span>
-            <span>${k.m+k.f?pc(k.fShare):'—'} female</span>
-          </span>
+          ${fourQty(k)}
           <span>${move||shortd(k.last)}</span>
         </div>
       </summary>
       <div class="k-body">
         ${k.unitList.map(u=>`<div class="u">
-            <span>${esc(u.name)}<small>${n(u.m)} m · ${n(u.f)} f · last ${shortd(u.last)}</small></span>
+            <span>${esc(u.name)}<small>AM ${n(four(u)[0])} · M ${n(four(u)[1])} · AF ${n(four(u)[2])} · F ${n(four(u)[3])} · last ${shortd(u.last)}</small></span>
             <span class="u-t">${n(u.total)}</span>
           </div>`).join('')}
         <div class="k-foot">
@@ -513,7 +563,7 @@ function board(c){
 }
 
 function khetraTable(c){
-  const rows=c.khetras.slice();
+  const rows=c.khetras.map(k=>({...k, rm:k.m-k.am, rf:k.f-k.af}));
   const {key,dir}=state.sort;
   rows.sort((a,b)=>{
     const va=a[key], vb=b[key];
@@ -522,15 +572,15 @@ function khetraTable(c){
   });
   const th=(k,l)=>`<th data-sort="${k}" data-active="${key===k}">${l}</th>`;
   return `<div class="tabcard"><div class="scroll"><table>
-    <thead><tr>${th('name','Khetra')}${th('total','Total')}${th('m','Males')}${th('f','Females')}
-      ${th('arrived','In')}${th('departed','Out')}${th('last','Last')}</tr></thead>
+    <thead><tr>${th('name','Khetra')}${th('total','Total')}${th('am','Adhikari M')}${th('rm','Males')}
+      ${th('af','Adhikari F')}${th('rf','Females')}${th('arrived','In')}${th('departed','Out')}${th('last','Last')}</tr></thead>
     <tbody>${rows.map(k=>`<tr>
       <td>${esc(k.name)}</td><td>${n(k.total)}</td>
-      <td style="color:var(--m)">${n(k.m)}</td><td style="color:var(--f)">${n(k.f)}</td>
+      ${fourTds(k)}
       <td class="in">${n(k.arrived)}</td><td class="out">${n(k.departed)}</td>
       <td>${shortd(k.last)}</td></tr>`).join('')}
       <tr><td>All khetras</td><td>${n(c.total)}</td>
-        <td style="color:var(--m)">${n(c.males)}</td><td style="color:var(--f)">${n(c.females)}</td>
+        ${fourTds(c)}
         <td class="in">${n(c.arrived)}</td><td class="out">${n(c.departed)}</td>
         <td>—</td></tr>
     </tbody></table></div></div>
@@ -563,11 +613,11 @@ function gender(c){
       <h2>Where the balance sits</h2>
       <p>Female share on ${nice(state.asOn)}.</p>
       <div class="scroll"><table>
-        <thead><tr><th>Reading</th><th>Khetra</th><th>Males</th><th>Females</th><th>Female %</th></tr></thead>
+        <thead><tr><th>Reading</th><th>Khetra</th>${FOUR_TH}<th>Female %</th></tr></thead>
         <tbody>
-          <tr><td>Highest female share</td><td>${esc(mostF.name)}</td><td>${n(mostF.m)}</td><td>${n(mostF.f)}</td><td>${pc(mostF.fShare)}</td></tr>
-          <tr><td>Lowest female share</td><td>${esc(leastF.name)}</td><td>${n(leastF.m)}</td><td>${n(leastF.f)}</td><td>${pc(leastF.fShare)}</td></tr>
-          <tr><td>Ground B</td><td>All khetras</td><td>${n(c.males)}</td><td>${n(c.females)}</td><td>${pc(c.females/(c.males+c.females))}</td></tr>
+          <tr><td>Highest female share</td><td>${esc(mostF.name)}</td>${fourTds(mostF)}<td>${pc(mostF.fShare)}</td></tr>
+          <tr><td>Lowest female share</td><td>${esc(leastF.name)}</td>${fourTds(leastF)}<td>${pc(leastF.fShare)}</td></tr>
+          <tr><td>Ground B</td><td>All khetras</td>${fourTds(c)}<td>${pc(c.females/(c.males+c.females))}</td></tr>
         </tbody></table></div>
       <p class="note">${c.females? n(Math.round(ratio*10)/10)+' males for every female in Ground B.' : 'No female sewadal counted yet.'}${c.unsplit? ' '+n(c.unsplit)+' counted without a male/female split.' : ''}</p>
     </div>
@@ -575,12 +625,11 @@ function gender(c){
       <h2>Units with the most sewadal</h2>
       <p>Across every khetra, top 8 on this date.</p>
       <div class="scroll"><table>
-        <thead><tr><th>Unit</th><th>Khetra</th><th>Males</th><th>Females</th><th>Total</th></tr></thead>
+        <thead><tr><th>Unit</th><th>Khetra</th>${FOUR_TH}<th>Total</th></tr></thead>
         <tbody>${c.khetras.flatMap(k=>k.unitList.map(u=>({...u,khetra:k.name})))
           .filter(u=>u.total>0).sort((a,b)=>b.total-a.total).slice(0,8)
           .map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.khetra)}</td>
-            <td style="color:var(--m)">${n(u.m)}</td><td style="color:var(--f)">${n(u.f)}</td>
-            <td>${n(u.total)}</td></tr>`).join('')}
+            ${fourTds(u)}<td>${n(u.total)}</td></tr>`).join('')}
         </tbody></table></div>
     </div>`;
 }
@@ -644,15 +693,49 @@ function log(c){
       </select>
     </div>
     ${shown.length?`<div class="tabcard"><div class="scroll"><table>
-      <thead><tr><th>Khetra</th><th>Unit</th><th>Status</th><th>M</th><th>F</th><th>Total</th><th>Date</th></tr></thead>
+      <thead><tr><th>Khetra</th><th>Unit</th><th>Status</th>${FOUR_TH}<th>Total</th><th>Date</th></tr></thead>
       <tbody>${shown.map(r=>`<tr>
         <td>${esc(r.khetra)}</td><td style="text-align:left">${esc(r.unit)}</td>
         <td class="${r.status==='entry'?'in':'out'}">${r.status==='entry'?'Entry':'Exit'}</td>
-        <td style="color:var(--m)">${n(r.m)}</td><td style="color:var(--f)">${n(r.f)}</td>
+        ${fourTds(r)}
         <td>${n(r.total)}</td><td>${shortd(r.date)}</td></tr>`).join('')}
       </tbody></table></div></div>
       <p class="note">${n(rows.length)} row${rows.length===1?'':'s'} up to ${nice(state.asOn)}${rows.length>200?', showing latest 200':''}.</p>`
     :`<div class="empty">No rows match.</div>`}`;
+}
+
+function messageText(c){
+  const d=new Date(state.asOn+'T00:00:00');
+  const dmy=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+  const live=c.khetras.filter(k=>k.m+k.f!==0).sort((a,b)=>a.row-b.row);   // order they first appear in the sheet
+  const lines=live.map((k,i)=>{ const q=four(k);
+    return `${i+1}.${k.name}=${q.join('+')}=${q.reduce((s,v)=>s+v,0)}`; });
+  const t=four(c);
+  return ['Dhan Nirankar Ji','',`Sewadal Attendance Ground - B as on ${dmy}`,'',...lines,'',
+          `Total Sewadal = ${t.join('+')}=${t.reduce((s,v)=>s+v,0)}`].join('\n');
+}
+
+function message(c){
+  const txt=messageText(c);
+  return `<div class="panel">
+      <h2>Attendance message</h2>
+      <p>As on ${nice(state.asOn)}. Each khetra is Adhikari Male + Male + Adhikari Female + Female. Change the date above to regenerate.</p>
+      <pre class="msg" id="msgText">${esc(txt)}</pre>
+      <div class="btnrow">
+        <button class="btn primary" id="copyMsg">Copy message</button>
+        <a class="btn" href="https://wa.me/?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Send on WhatsApp</a>
+      </div>
+    </div>`;
+}
+
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); return true; }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=t; ta.setAttribute('readonly','');
+    ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select();
+    let ok=false; try{ ok=document.execCommand('copy'); }catch(_){}
+    ta.remove(); return ok;
+  }
 }
 
 function diagnose(){
@@ -689,6 +772,12 @@ function wireView(){
     const nq=document.getElementById('q'); nq.focus(); nq.setSelectionRange(p,p); };
   const sf=document.getElementById('statusFilter');
   if(sf) sf.onchange=e=>{ state.statusFilter=e.target.value; render(); };
+  const cm=document.getElementById('copyMsg');
+  if(cm) cm.onclick=async()=>{
+    const ok=await copyText(messageText(compute(state.asOn)));
+    cm.textContent= ok ? 'Copied' : 'Select the text and copy';
+    setTimeout(()=>{ cm.textContent='Copy message'; },1800);
+  };
 }
 document.querySelectorAll('nav button').forEach(b=>{
   b.onclick=()=>{ state.tab=b.dataset.tab;

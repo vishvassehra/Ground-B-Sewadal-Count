@@ -9,15 +9,20 @@ The sheet is the only store. Nothing is written back, no database.
 
 ## How the count works
 
-Sheet columns: `Timestamp, Khetra, Unit, Status, Date, Males, Females`
+Sheet columns: `Timestamp, Khetra, Unit, Status, Date, Males, Females, Adhikari Male, Adhikari Female`
 
 For a chosen date **D**, every row with `Date <= D` is taken:
 
 ```
 males(khetra)   = Σ Males   where Status = Entry  −  Σ Males   where Status = Exit
 females(khetra) = Σ Females where Status = Entry  −  Σ Females where Status = Exit
-strength        = males + females
+strength        = adhikari male + males + adhikari female + females
 ```
+
+Each of the four is netted entry-minus-exit on its own. Everywhere the page shows
+them, the order is Adhikari Male, Males, Adhikari Female, Females. The male/female
+split bar, female share and trend use all males (adhikari + males) against all
+females (adhikari + females).
 
 An older `Count` column, if present, is still read and added to the total as an
 unsplit figure.
@@ -37,6 +42,7 @@ under the title.
 - **Male / female** — male-female split per khetra as bars, highest and lowest female share, male-to-female ratio for the ground, top 8 units by strength.
 - **Trend** — males as the lower band and total as the full height across the Samagam, peak and its date, last 14 dates of in/out split by male and female.
 - **Print / A4 PDF** — the button in the footer prints whichever tab is open, laid out for A4 portrait: Samagam heading, the tab name, the as-on date, ground totals and a printed-at stamp. Khetra cards are expanded automatically so units appear on paper, and rows and cards are kept from splitting across pages. Use the browser's "Save as PDF" destination for a file.
+- **Message** — the attendance message for the chosen date, ready to copy or send on WhatsApp. One line per khetra as `Adhikari Male+Males+Adhikari Female+Females=total`, khetras in the order they first appear in the sheet, ground total at the end.
 - **Log** — every row up to the chosen date with its M/F counts, searchable by khetra or unit, filterable to entry or exit.
 
 Negative strength in a khetra (more exits than entries recorded) is flagged on the
